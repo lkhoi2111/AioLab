@@ -7,6 +7,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --break-system-packages \
+    torch torchvision torchaudio \
+    --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip3 install --break-system-packages \
     yt-dlp \
     demucs \
     librosa \
