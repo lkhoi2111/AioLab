@@ -9,9 +9,19 @@ import audioRouter from './routes/audio.js';
 import downloaderRouter from './routes/downloader.js';
 import extractAudioRouter from './routes/extractAudio.js';
 import { downloadExtractedAudioController } from './controllers/extractAudioController.js';
+import {
+  assertRequiredRuntime,
+  getSystemCheckBooleans,
+  getSystemDiagnostics,
+  logSystemDiagnostics
+} from './utils/systemCheck.js';
 
 ensureStorageDirs();
 startCleanupJob();
+
+const startupDiagnostics = getSystemDiagnostics();
+logSystemDiagnostics(startupDiagnostics);
+assertRequiredRuntime(startupDiagnostics);
 
 const app = express();
 const corsOptions = {
@@ -52,6 +62,10 @@ app.get('/api/health', (_req, res) => {
     tempFileTtlMinutes: config.tempFileTtlMs / 60 / 1000,
     cleanupIntervalMinutes: config.cleanupIntervalMs / 60 / 1000
   });
+});
+
+app.get('/api/system/check', (_req, res) => {
+  res.json(getSystemCheckBooleans());
 });
 
 app.use('/api/chat', chatRouter);
