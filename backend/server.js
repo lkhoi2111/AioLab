@@ -53,7 +53,11 @@ app.use((error, _req, res, _next) => {
   });
 });
 
-const PORT = process.env.PORT || config.port || 4000;
+app.get("/", (_req, res) => {
+  res.send("AioLab API running");
+});
+
+const PORT = process.env.PORT || config.port;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`AI Music Studio API running on port ${PORT}`);
