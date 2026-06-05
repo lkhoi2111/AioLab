@@ -29,7 +29,8 @@ import PageTransition from './PageTransition.jsx';
 import { apiUrl } from './config.js';
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
-const SCROLL_COOLDOWN = 2600;
+const SECTION_TRANSITION_MS = 1250;
+const SCROLL_COOLDOWN = 3000;
 const WHEEL_THRESHOLD = 40;
 const TOUCH_THRESHOLD = 50;
 const CHAT_FALLBACK =
@@ -228,6 +229,7 @@ export default function App() {
     }
 
     function onTouchMove(event) {
+      if (activeSection === 1 && event.target?.closest?.('.about-section')) return;
       event.preventDefault();
     }
 
@@ -730,7 +732,7 @@ export default function App() {
 
     window.setTimeout(() => {
       isAnimatingRef.current = false;
-    }, 1050);
+    }, SECTION_TRANSITION_MS);
   }
 
   function scrollToAbout() {
@@ -782,6 +784,8 @@ export default function App() {
     }
 
     if (diff < 0 && activeSection === 1) {
+      const aboutEl = event.target?.closest?.('.about-section');
+      if (aboutEl?.scrollTop > 4) return;
       scrollToHome();
     }
   }
@@ -894,7 +898,7 @@ export default function App() {
             y: [6, 0, 6]
           }}
           transition={{
-            duration: 2.4,
+            duration: 3,
             repeat: Infinity,
             ease: 'easeInOut'
           }}
@@ -916,7 +920,7 @@ export default function App() {
             y: [-4, 0, -4]
           }}
           transition={{
-            duration: 2.2,
+            duration: 3,
             repeat: Infinity,
             ease: 'easeInOut'
           }}
@@ -1030,6 +1034,16 @@ export default function App() {
         ref={aboutSectionRef}
         className="app-section about-section"
       >
+        {activeSection === 1 && (
+          <button
+            type="button"
+            className="about-close-btn"
+            onClick={() => goToSection(0)}
+            aria-label="Close About App"
+          >
+            ×
+          </button>
+        )}
         <motion.div
           className="about-shell about-content"
           animate={{
@@ -1038,7 +1052,7 @@ export default function App() {
             filter: activeSection === 1 ? 'blur(0px)' : 'blur(8px)'
           }}
           transition={{
-            duration: 0.55,
+            duration: 0.75,
             ease: [0.22, 1, 0.36, 1]
           }}
         >

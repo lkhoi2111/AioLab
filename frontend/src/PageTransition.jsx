@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 
 const pageTransition = {
-  duration: 0.28,
+  duration: 0.65,
   ease: [0.22, 1, 0.36, 1]
 };
 

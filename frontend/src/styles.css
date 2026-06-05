@@ -87,7 +87,7 @@ a {
   height: 200vh;
   min-height: 200vh;
   transform: translate3d(0, 0, 0);
-  transition: transform 1050ms cubic-bezier(0.65, 0, 0.35, 1);
+  transition: transform 1250ms cubic-bezier(0.65, 0, 0.35, 1);
   will-change: transform;
 }
 
@@ -117,15 +117,15 @@ a {
   transform: translateY(0);
   filter: blur(0);
   transition:
-    opacity 450ms ease,
-    transform 450ms ease,
-    filter 450ms ease;
+    opacity 750ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 750ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 750ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .about-active .home-content {
   opacity: 0;
-  transform: translateY(-22px);
-  filter: blur(4px);
+  transform: translateY(-32px);
+  filter: blur(8px);
 }
 
 .about-section {
@@ -339,18 +339,26 @@ a {
   margin: 0 auto;
   padding-bottom: 0;
   padding-right: 0;
-  opacity: 0;
-  transform: translateY(20px);
-  filter: blur(4px);
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
   transition:
-    opacity 520ms ease 180ms,
-    transform 520ms ease 180ms,
-    filter 520ms ease 180ms;
+    opacity 750ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 750ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 750ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, filter;
+}
+
+.home-active .about-content {
+  opacity: 0;
+  transform: translateY(32px);
+  filter: blur(8px);
+  pointer-events: none;
 }
 
 .about-active .about-content {
   opacity: 1;
-  transform: translateY(-8px);
+  transform: translateY(0);
   filter: blur(0);
 }
 
@@ -562,6 +570,31 @@ a {
   display: inline-block;
   height: 14px;
   line-height: 14px;
+}
+
+.about-close-btn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 18px);
+  right: 18px;
+  z-index: 100;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.about-close-btn:active {
+  transform: scale(0.94);
 }
 
 .modal-backdrop {
@@ -2162,6 +2195,123 @@ audio {
     bottom: 18px;
     height: 24px;
     font-size: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo-main {
+    max-width: 260px;
+  }
+
+  .hero p {
+    max-width: 320px;
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  .command-box {
+    width: calc(100% - 32px);
+    min-height: 74px;
+    padding: 10px;
+  }
+
+  .command-box input {
+    min-width: 0;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .command-submit {
+    height: 52px;
+    min-height: 52px;
+    font-size: 16px;
+  }
+
+  .chat-fab {
+    width: 54px;
+    height: 54px;
+    right: 16px;
+    bottom: 92px;
+  }
+
+  .home-about-shell .about-section {
+    height: 100vh;
+    padding: 56px 18px 84px;
+    align-items: flex-start;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .about-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .about-label {
+    font-size: 11px;
+    letter-spacing: 1.4px;
+  }
+
+  .about-title,
+  .about-heading h1 {
+    margin-top: 8px;
+    font-size: 40px;
+    line-height: 1;
+  }
+
+  .about-heading p,
+  .about-subtitle {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .about-top-grid,
+  .features-grid,
+  .feature-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .about-card,
+  .features-section,
+  .why-section {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .about-card h2,
+  .features-section h2,
+  .why-section h2 {
+    font-size: 24px;
+    line-height: 1.15;
+  }
+
+  .about-card p,
+  .feature-card p,
+  .why-section p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .feature-card {
+    display: block;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .feature-card:nth-child(n + 4) {
+    display: block;
+  }
+
+  .feature-card h3 {
+    font-size: 16px;
+    line-height: 1.3;
   }
 }
 
