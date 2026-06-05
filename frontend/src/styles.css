@@ -576,20 +576,21 @@ a {
   position: fixed;
   top: calc(env(safe-area-inset-top) + 18px);
   right: 18px;
-  z-index: 100;
-  width: 42px;
-  height: 42px;
+  z-index: 9999;
+  width: 44px;
+  height: 44px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  font-size: 26px;
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(20, 18, 32, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-size: 30px;
   line-height: 1;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -2199,19 +2200,62 @@ audio {
 }
 
 @media (max-width: 768px) {
+  .home-section {
+    height: 100dvh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .home-content {
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+    transform: translateY(-28px);
+    padding: 0 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .studio-page {
+    height: 100dvh;
+  }
+
+  .studio-main.home-main {
+    height: 100dvh;
+    min-height: 100dvh;
+    padding: 0 18px;
+    display: grid;
+    place-items: center;
+  }
+
+  .hero {
+    min-height: auto;
+    justify-content: center;
+  }
+
   .logo-main {
-    max-width: 260px;
+    width: min(270px, 74vw);
+    max-width: min(270px, 74vw);
+    margin-bottom: 28px;
   }
 
   .hero p {
-    max-width: 320px;
+    max-width: 330px;
+    margin: 0 0 32px;
+    text-align: center;
     font-size: 18px;
     line-height: 1.45;
   }
 
   .command-box {
-    width: calc(100% - 32px);
+    width: 100%;
+    max-width: 360px;
     min-height: 74px;
+    margin-top: 0;
     padding: 10px;
   }
 
@@ -2232,8 +2276,17 @@ audio {
   .chat-fab {
     width: 54px;
     height: 54px;
-    right: 16px;
-    bottom: 92px;
+    right: 18px;
+    bottom: 78px;
+  }
+
+  .hub-pills {
+    max-width: 360px;
+    justify-content: center;
+  }
+
+  .swipe-arrow-hint {
+    bottom: 28px;
   }
 
   .home-about-shell .about-section {

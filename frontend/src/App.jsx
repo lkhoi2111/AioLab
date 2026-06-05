@@ -953,6 +953,16 @@ export default function App() {
       {isHomePage && renderAboutSection()}
       </div>
     </div>
+    {isHomePage && activeSection === 1 && (
+      <button
+        type="button"
+        className="about-close-btn"
+        onClick={() => goToSection(0)}
+        aria-label="Đóng About App"
+      >
+        ×
+      </button>
+    )}
     <AnimatePresence>
       {comingSoonOpen && renderComingSoonModal()}
     </AnimatePresence>
@@ -1034,16 +1044,6 @@ export default function App() {
         ref={aboutSectionRef}
         className="app-section about-section"
       >
-        {activeSection === 1 && (
-          <button
-            type="button"
-            className="about-close-btn"
-            onClick={() => goToSection(0)}
-            aria-label="Close About App"
-          >
-            ×
-          </button>
-        )}
         <motion.div
           className="about-shell about-content"
           animate={{
