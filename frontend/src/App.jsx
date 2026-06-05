@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bot,
   CircleAlert,
-  Construction,
   Download,
   FileDown,
   FileText,
@@ -142,6 +141,7 @@ export default function App() {
   const [videoExtractError, setVideoExtractError] = useState('');
   const [videoExtractBusy, setVideoExtractBusy] = useState(false);
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [comingSoonTool, setComingSoonTool] = useState('');
   const fileInputRef = useRef(null);
   const hubFileInputRef = useRef(null);
   const videoExtractInputRef = useRef(null);
@@ -603,7 +603,7 @@ export default function App() {
     }
 
     if (['image', 'documents'].includes(kind)) {
-      openComingSoonModal();
+      openComingSoonModal(kind === 'image' ? 'Image' : 'Documents');
       return;
     }
 
@@ -672,9 +672,39 @@ export default function App() {
     );
   }
 
-  function openComingSoonModal() {
+  function openComingSoonModal(tool = 'Tính năng này') {
+    setComingSoonTool(tool);
     setComingSoonOpen(true);
-    setSidebarOpen(false);
+  }
+
+  function handleToolClick(tool) {
+    const key = tool.toLowerCase();
+    const comingSoonTools = ['image', 'document', 'documents'];
+
+    if (comingSoonTools.includes(key)) {
+      openComingSoonModal(tool);
+      return;
+    }
+
+    if (key === 'audio') {
+      setActiveView('studio');
+      return;
+    }
+
+    if (key === 'video') {
+      setActiveView('video');
+      return;
+    }
+
+    if (key === 'downloader') {
+      setActiveView('downloader');
+      return;
+    }
+
+    if (key === 'ai') {
+      setActiveView('ai');
+      setChatOpen(true);
+    }
   }
 
   function lockScroll() {
@@ -757,6 +787,7 @@ export default function App() {
   }
 
   return (
+    <>
     <div
       className={`app-sections ${isHomePage ? 'home-page home-about-shell' : 'tool-page'}`}
       {...(isHomePage
@@ -821,7 +852,8 @@ export default function App() {
                       setActiveView('home');
                     }
                   } else if (['image', 'documents'].includes(item.id)) {
-                    openComingSoonModal();
+                    openComingSoonModal(item.label);
+                    return;
                   } else {
                     setActiveView(item.id);
                     if (isHomePage && activeSection === 1) {
@@ -910,9 +942,6 @@ export default function App() {
         {chatOpen && renderChat()}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {comingSoonOpen && renderComingSoonModal()}
-      </AnimatePresence>
         </div>
         </div>
       </section>
@@ -920,12 +949,16 @@ export default function App() {
       {isHomePage && renderAboutSection()}
       </div>
     </div>
+    <AnimatePresence>
+      {comingSoonOpen && renderComingSoonModal()}
+    </AnimatePresence>
+    </>
   );
 
   function renderComingSoonModal() {
     return (
       <motion.div
-        className="coming-soon-overlay"
+        className="modal-backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -940,10 +973,10 @@ export default function App() {
           transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="coming-soon-icon"><Construction size={30} /></div>
-          <h2>🚧 Coming Soon</h2>
-          <p>Image Tools và Document Tools hiện đang được phát triển.</p>
-          <p>Hãy quay lại sau để trải nghiệm các tính năng mới.</p>
+          <div className="coming-soon-icon">🚧</div>
+          <h2>Tính năng đang phát triển</h2>
+          <p>{comingSoonTool || 'Tính năng này'} hiện đang trong quá trình phát triển và tối ưu trải nghiệm người dùng.</p>
+          <p>Hãy quay lại sau để trải nghiệm tính năng này trong các bản cập nhật tiếp theo của AioLab.</p>
           <button type="button" onClick={() => setComingSoonOpen(false)}>Đã hiểu</button>
         </motion.div>
       </motion.div>
@@ -1096,7 +1129,9 @@ export default function App() {
         {hubMessage && <div className="status-message">{hubMessage}</div>}
         <div className="hub-pills">
           {hubPills.map((pill) => (
-            <span key={pill}>{pill}</span>
+            <button key={pill} type="button" onClick={() => handleToolClick(pill)}>
+              {pill}
+            </button>
           ))}
         </div>
       </section>

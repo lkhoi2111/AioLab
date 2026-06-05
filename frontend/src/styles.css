@@ -564,6 +564,73 @@ a {
   line-height: 14px;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  animation: modalFadeIn 0.22s ease both;
+}
+
+.coming-soon-modal {
+  width: min(440px, calc(100% - 32px));
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 26px;
+  color: white;
+  background: rgba(20, 18, 32, 0.92);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  animation: modalScaleIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.coming-soon-icon {
+  margin-bottom: 14px;
+  font-size: 34px;
+}
+
+.coming-soon-modal h2 {
+  margin: 0 0 12px;
+  font-size: 26px;
+}
+
+.coming-soon-modal p {
+  margin: 0 0 10px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.6;
+}
+
+.coming-soon-modal button {
+  margin-top: 18px;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .hamburger-btn {
   position: fixed;
   top: 24px;
@@ -903,7 +970,7 @@ a {
   margin-top: 24px;
 }
 
-.hub-pills span {
+.hub-pills button {
   min-height: 32px;
   display: inline-flex;
   align-items: center;
@@ -934,7 +1001,7 @@ a {
   font-weight: 740;
 }
 
-.hub-pills span:hover {
+.hub-pills button:hover {
   transform: translateY(-2px);
   border-color: rgba(170, 150, 255, 0.8);
   background: rgba(140, 120, 255, 0.15);
