@@ -1,0 +1,18 @@
+[phases.setup]
+nixPkgs = [
+  "nodejs_22",
+  "python311",
+  "python311Packages.pip",
+  "ffmpeg",
+  "yt-dlp"
+]
+
+[phases.install]
+cmds = [
+  "npm install",
+  "python3 -m pip install --upgrade pip",
+  "pip install librosa soundfile numpy scipy demucs"
+]
+
+[start]
+cmd = "npm start"
