@@ -27,8 +27,8 @@ import {
   X
 } from 'lucide-react';
 import PageTransition from './PageTransition.jsx';
+import { apiUrl } from './config.js';
 
-const API_BASE = '';
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
 const SCROLL_COOLDOWN = 2600;
 const WHEEL_THRESHOLD = 40;
@@ -83,6 +83,28 @@ const starterMessages = [
     content: CHAT_FALLBACK
   }
 ];
+
+async function readJsonResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || data.message || data.detail || 'Request failed');
+    }
+    return data;
+  }
+
+  const text = await response.text();
+  throw new Error(text.slice(0, 200) || 'Server returned non-JSON response');
+}
+
+function backendAssetUrl(value) {
+  if (!value || typeof value !== 'string') return value;
+  if (/^(https?:|data:|blob:|mailto:|tel:|#)/i.test(value)) return value;
+  if (/^\/(uploads|results|downloads|separated)\//.test(value)) return apiUrl(value);
+  return value;
+}
 
 export default function App() {
   const [activeView, setActiveView] = useState('home');
@@ -229,13 +251,12 @@ export default function App() {
     setChatBusy(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await fetch(apiUrl('/api/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ messages: nextMessages })
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || data.detail || 'Chat API unavailable.');
+      const data = await readJsonResponse(response);
 
       setMessages((current) => [
         ...current,
@@ -269,9 +290,8 @@ export default function App() {
     setStatusMessage('Đang upload audio...');
 
     try {
-      const response = await fetch(`${API_BASE}/api/upload`, { method: 'POST', body: formData });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Upload không thành công.');
+      const response = await fetch(apiUrl('/api/upload'), { method: 'POST', body: formData });
+      const data = await readJsonResponse(response);
 
       const uploadedFile = normalizeUploadedFile(data);
       setUpload(uploadedFile);
@@ -293,18 +313,18 @@ export default function App() {
     setAnalysisError('');
 
     try {
-      const response = await fetch(`${API_BASE}/api/audio/analyze`, {
+      const response = await fetch(apiUrl('/api/audio/analyze'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: file.storedName || file.fileName, force: Boolean(options.force) })
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.detail || data.error || 'Không thể phân tích audio.');
+      const data = await readJsonResponse(response);
+      if (!data.ok) throw new Error(data.detail || data.error || 'Không thể phân tích audio.');
 
       setUpload((current) => ({
         ...(current || file),
         ...(data.file || {}),
-        url: data.file?.url || current?.url || file.url
+        url: backendAssetUrl(data.file?.url || current?.url || file.url)
       }));
       setAnalysis(data.analysis || null);
     } catch {
@@ -327,17 +347,24 @@ export default function App() {
     );
 
     try {
-      const response = await fetch(`${API_BASE}/api/audio/separate-all`, {
+      const response = await fetch(apiUrl('/api/audio/separate-all'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: upload.storedName || upload.fileName })
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.detail || data.error || 'Không thể tách nhạc.');
+      const data = await readJsonResponse(response);
+      if (!data.ok) throw new Error(data.detail || data.error || 'Không thể tách nhạc.');
 
       clearProgressTimers();
       setProgress(progressSteps.at(-1));
-      setResult(data);
+      setResult({
+        ...data,
+        files: data.files?.map((item) => ({
+          ...item,
+          url: backendAssetUrl(item.url),
+          downloadUrl: backendAssetUrl(item.downloadUrl)
+        }))
+      });
     } catch (error) {
       clearProgressTimers();
       setProgress({ percent: 100, text: `Tách nhạc lỗi: ${error.message}`, error: true });
@@ -349,7 +376,7 @@ export default function App() {
   async function deleteFile() {
     if (!upload || uploadBusy || processing) return;
     try {
-      await fetch(`${API_BASE}/api/audio/delete`, {
+      await fetch(apiUrl('/api/audio/delete'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: upload.storedName || upload.fileName })
@@ -388,15 +415,18 @@ export default function App() {
     setDownloaderProgress(downloaderStages[0]);
 
     try {
-      const response = await fetch(`${API_BASE}/api/downloader/info`, {
+      const response = await fetch(apiUrl('/api/downloader/info'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ url })
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.error || UNSUPPORTED_MESSAGE);
+      const data = await readJsonResponse(response);
+      if (!data.ok) throw new Error(data.error || UNSUPPORTED_MESSAGE);
 
-      setDownloaderInfo(data);
+      setDownloaderInfo({
+        ...data,
+        thumbnail: backendAssetUrl(data.thumbnail)
+      });
       setDownloaderProgress(null);
     } catch (error) {
       setDownloaderError(error.message || UNSUPPORTED_MESSAGE);
@@ -419,17 +449,21 @@ export default function App() {
     );
 
     try {
-      const response = await fetch(`${API_BASE}/api/downloader/download`, {
+      const response = await fetch(apiUrl('/api/downloader/download'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ url: downloaderUrl.trim(), format, quality: 'best' })
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.error || 'Không thể tải media này.');
+      const data = await readJsonResponse(response);
+      if (!data.ok) throw new Error(data.error || 'Không thể tải media này.');
 
       clearDownloaderTimers();
       setDownloaderProgress(downloaderStages.at(-1));
-      setDownloaderResult(data);
+      setDownloaderResult({
+        ...data,
+        downloadUrl: backendAssetUrl(data.downloadUrl),
+        url: backendAssetUrl(data.url)
+      });
     } catch (error) {
       clearDownloaderTimers();
       setDownloaderProgress({ percent: 100, text: error.message || 'Tải lỗi', error: true });
@@ -448,13 +482,13 @@ export default function App() {
     setDownloaderBusy(true);
     setDownloaderError('');
     try {
-      const response = await fetch(`${API_BASE}/api/downloader/use-in-audio-tools`, {
+      const response = await fetch(apiUrl('/api/downloader/use-in-audio-tools'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: downloaderResult.fileName })
       });
-      const data = await response.json();
-      if (!response.ok || !data.ok) throw new Error(data.error || 'Không thể gửi file sang Audio Tools.');
+      const data = await readJsonResponse(response);
+      if (!data.ok) throw new Error(data.error || 'Không thể gửi file sang Audio Tools.');
 
       const audioFile = normalizeUploadedFile(data);
       setUpload(audioFile);
@@ -524,18 +558,22 @@ export default function App() {
       formData.append('video', videoExtractFile.file);
       formData.append('format', videoExtractFormat);
 
-      const response = await fetch(`${API_BASE}/api/extract-audio`, {
+      const response = await fetch(apiUrl('/api/extract-audio'), {
         method: 'POST',
         body: formData
       });
-      const data = await response.json();
-      if (!response.ok || !data.success) {
+      const data = await readJsonResponse(response);
+      if (!data.success) {
         throw new Error(data.message || 'Audio extraction failed.');
       }
 
       clearVideoExtractTimers();
       setVideoExtractProgress({ percent: 100, text: 'Completed' });
-      setVideoExtractResult(data);
+      setVideoExtractResult({
+        ...data,
+        downloadUrl: backendAssetUrl(data.downloadUrl),
+        url: backendAssetUrl(data.url)
+      });
     } catch (error) {
       clearVideoExtractTimers();
       setVideoExtractProgress({ percent: 100, text: 'Failed', error: true });
@@ -1119,7 +1157,7 @@ export default function App() {
 
         {hasUpload && (
           <section className="workspace-card">
-            <audio controls src={upload.url} />
+            <audio controls src={backendAssetUrl(upload.url)} />
             <div className="compact-section">
               <div className="section-title">Thông tin bài nhạc</div>
               <div className="info-grid">
@@ -1178,11 +1216,11 @@ export default function App() {
                 <div className="stem-row" key={file.type}>
                   <strong>{stemLabels[file.type] || file.type}</strong>
                   <div className="stem-actions">
-                    <a className="preview-link" href={file.url} target="_blank" rel="noreferrer">
+                    <a className="preview-link" href={backendAssetUrl(file.url)} target="_blank" rel="noreferrer">
                       <Play size={15} />
                       <span>Nghe thử</span>
                     </a>
-                    <a className="download-link" href={file.downloadUrl || file.url}>
+                    <a className="download-link" href={backendAssetUrl(file.downloadUrl || file.url)}>
                       <Download size={15} />
                       <span>Tải xuống</span>
                     </a>
@@ -1220,7 +1258,7 @@ export default function App() {
         {downloaderProgress && <ProgressCard progress={downloaderProgress} complete={Boolean(downloaderResult)} />}
         {downloaderInfo && (
           <section className="downloader-card">
-            {downloaderInfo.thumbnail ? <img src={downloaderInfo.thumbnail} alt="" /> : <div className="thumbnail-empty"><FileDown size={30} /></div>}
+            {downloaderInfo.thumbnail ? <img src={backendAssetUrl(downloaderInfo.thumbnail)} alt="" /> : <div className="thumbnail-empty"><FileDown size={30} /></div>}
             <div className="download-meta">
               <span>{downloaderInfo.platform} • {downloaderInfo.type}</span>
               <h2>{downloaderInfo.title}</h2>
@@ -1247,7 +1285,7 @@ export default function App() {
               <p>{downloaderResult.format.toUpperCase()} • {downloaderResult.sizeMB} MB • hết hạn sau {downloaderResult.expiresInMinutes} phút</p>
             </div>
             <div className="stem-actions">
-              <a className="download-link" href={downloaderResult.downloadUrl}><Download size={15} /><span>Download File</span></a>
+              <a className="download-link" href={backendAssetUrl(downloaderResult.downloadUrl)}><Download size={15} /><span>Download File</span></a>
               {downloaderResult.format === 'mp3' && <button className="secondary-action" type="button" onClick={useInAudioTools}><Waves size={15} /><span>Use in Audio Tools</span></button>}
             </div>
           </section>
@@ -1337,7 +1375,7 @@ export default function App() {
               <p>{videoExtractFormat.toUpperCase()} • Completed</p>
             </div>
             <div className="stem-actions">
-              <a className="download-link" href={videoExtractResult.downloadUrl}>
+              <a className="download-link" href={backendAssetUrl(videoExtractResult.downloadUrl)}>
                 <Download size={15} />
                 <span>Download</span>
               </a>
@@ -1468,7 +1506,7 @@ function Metric({ label, value, wide = false }) {
 }
 
 function normalizeUploadedFile(data) {
-  if (data.file) return { ...data.file, fileName: data.file.storedName, url: data.file.url || data.url };
+  if (data.file) return { ...data.file, fileName: data.file.storedName, url: backendAssetUrl(data.file.url || data.url) };
   return {
     fileName: data.fileName,
     storedName: data.storedName || data.fileName,
@@ -1477,7 +1515,7 @@ function normalizeUploadedFile(data) {
     size: data.size,
     sizeMB: data.size ? Number((data.size / 1024 / 1024).toFixed(2)) : data.sizeMB,
     format: data.format || fileFormat(data.originalName || data.displayName),
-    url: data.url,
+    url: backendAssetUrl(data.url),
     status: 'Đã upload'
   };
 }
