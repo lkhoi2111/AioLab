@@ -26,7 +26,7 @@ import {
   X
 } from 'lucide-react';
 import PageTransition from './PageTransition.jsx';
-import { apiUrl } from './config.js';
+import { apiUrl, parseApiResponse } from './config.js';
 
 const MAX_UPLOAD_SIZE = 100 * 1024 * 1024;
 const SECTION_TRANSITION_MS = 1250;
@@ -83,21 +83,6 @@ const starterMessages = [
     content: CHAT_FALLBACK
   }
 ];
-
-async function readJsonResponse(response) {
-  const contentType = response.headers.get('content-type') || '';
-
-  if (contentType.includes('application/json')) {
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || data.message || data.detail || 'Request failed');
-    }
-    return data;
-  }
-
-  const text = await response.text();
-  throw new Error(text.slice(0, 200) || 'Server returned non-JSON response');
-}
 
 function backendAssetUrl(value) {
   if (!value || typeof value !== 'string') return value;
@@ -209,6 +194,7 @@ export default function App() {
     isAnimatingRef.current = false;
     isScrollLockedRef.current = false;
     setActiveSection(0);
+    window.scrollTo(0, 0);
   }, [isHomePage]);
 
   useEffect(() => {
@@ -258,7 +244,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ messages: nextMessages })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
 
       setMessages((current) => [
         ...current,
@@ -293,7 +279,7 @@ export default function App() {
 
     try {
       const response = await fetch(apiUrl('/api/upload'), { method: 'POST', body: formData });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
 
       const uploadedFile = normalizeUploadedFile(data);
       setUpload(uploadedFile);
@@ -320,7 +306,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: file.storedName || file.fileName, force: Boolean(options.force) })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.ok) throw new Error(data.detail || data.error || 'Không thể phân tích audio.');
 
       setUpload((current) => ({
@@ -354,7 +340,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: upload.storedName || upload.fileName })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.ok) throw new Error(data.detail || data.error || 'Không thể tách nhạc.');
 
       clearProgressTimers();
@@ -422,7 +408,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ url })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.ok) throw new Error(data.error || UNSUPPORTED_MESSAGE);
 
       setDownloaderInfo({
@@ -456,7 +442,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ url: downloaderUrl.trim(), format, quality: 'best' })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.ok) throw new Error(data.error || 'Không thể tải media này.');
 
       clearDownloaderTimers();
@@ -489,7 +475,7 @@ export default function App() {
         headers: { 'Content-Type': 'application/json; charset=utf-8' },
         body: JSON.stringify({ fileName: downloaderResult.fileName })
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.ok) throw new Error(data.error || 'Không thể gửi file sang Audio Tools.');
 
       const audioFile = normalizeUploadedFile(data);
@@ -564,7 +550,7 @@ export default function App() {
         method: 'POST',
         body: formData
       });
-      const data = await readJsonResponse(response);
+      const data = await parseApiResponse(response);
       if (!data.success) {
         throw new Error(data.message || 'Audio extraction failed.');
       }
@@ -790,6 +776,151 @@ export default function App() {
     }
   }
 
+  function renderNavigation() {
+    return (
+      <>
+        <button
+          className={`hamburger-btn ${sidebarOpen ? 'active' : ''}`}
+          type="button"
+          onClick={() => setSidebarOpen((current) => !current)}
+          aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+          aria-expanded={sidebarOpen}
+        >
+          <Menu size={21} />
+        </button>
+
+        <button
+          className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+          type="button"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close sidebar"
+          tabIndex={sidebarOpen ? 0 : -1}
+        />
+
+        <aside className={`app-sidebar ${sidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-top">
+            {renderSidebarLogo()}
+            <strong>AioLab</strong>
+          </div>
+          <nav>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.id === 'about' ? isHomePage && activeSection === 1 : activeView === item.id && activeSection === 0;
+              return (
+                <button
+                  key={item.id}
+                  className={isActive ? 'active' : ''}
+                  type="button"
+                  onClick={() => {
+                    if (item.id === 'about') {
+                      if (isHomePage) {
+                        scrollToAbout();
+                      } else {
+                        pendingAboutScrollRef.current = true;
+                        setActiveSection(0);
+                        setActiveView('home');
+                      }
+                    } else if (['image', 'documents'].includes(item.id)) {
+                      openComingSoonModal(item.label);
+                      return;
+                    } else {
+                      setActiveView(item.id);
+                      if (isHomePage && activeSection === 1) {
+                        scrollToHome();
+                      } else {
+                        setActiveSection(0);
+                      }
+                    }
+                    setSidebarOpen(false);
+                  }}
+                  title={item.label}
+                >
+                  <Icon size={18} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+      </>
+    );
+  }
+
+  function renderAppChrome(content, { home = false } = {}) {
+    return (
+      <div
+        className={`studio-page ${sidebarOpen ? 'sidebar-open' : ''}`}
+        onDrop={(event) => {
+          event.preventDefault();
+          routeFile(event.dataTransfer.files?.[0]);
+        }}
+        onDragOver={(event) => event.preventDefault()}
+      >
+        {renderNavigation()}
+        {content}
+
+        {home && activeSection === 0 && (
+          <motion.button
+            className="swipe-arrow-hint"
+            type="button"
+            onClick={scrollToAbout}
+            style={{ x: '-50%' }}
+            animate={{
+              opacity: [0.18, 0.32, 0.18],
+              y: [6, 0, 6]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          >
+            <span>⌃</span>
+            <span>⌃</span>
+            <span>⌃</span>
+          </motion.button>
+        )}
+
+        {home && activeSection === 1 && (
+          <motion.button
+            className="about-return-indicator"
+            type="button"
+            onClick={scrollToHome}
+            aria-label="Back to Home"
+            animate={{
+              opacity: [0.16, 0.25, 0.16],
+              y: [-4, 0, -4]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeInOut'
+            }}
+          >
+            <span>⌄</span>
+            <span>⌄</span>
+            <span>⌄</span>
+          </motion.button>
+        )}
+
+        <footer className="page-footer">© 2026 AioLab. Developed by Lê Minh Khôi.</footer>
+
+        <button
+          className="chat-fab"
+          type="button"
+          onClick={() => setChatOpen((current) => !current)}
+          title={chatOpen ? 'Đóng chat' : 'Mở chat'}
+        >
+          {chatOpen ? <X size={22} /> : <MessageCircle size={23} />}
+        </button>
+
+        <AnimatePresence>
+          {chatOpen && renderChat()}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
     <>
     <div
@@ -801,6 +932,7 @@ export default function App() {
           }
         : {})}
     >
+      {isHomePage ? (
       <div className={`sections-track ${isHomePage ? 'home-about-track' : ''} ${isHomePage && activeSection === 0 ? 'home-active' : ''} ${isHomePage && activeSection === 1 ? 'is-about about-active' : ''}`}>
       <section
         className="app-section home-section"
@@ -952,6 +1084,20 @@ export default function App() {
 
       {isHomePage && renderAboutSection()}
       </div>
+      ) : (
+        renderAppChrome(
+          <AnimatePresence mode="wait">
+            <PageTransition
+              key={activeView}
+              className={`page-layout ${hasUpload ? 'has-upload' : ''}`}
+            >
+              <div className="page-content">
+                {renderActiveView()}
+              </div>
+            </PageTransition>
+          </AnimatePresence>
+        )
+      )}
     </div>
     {isHomePage && activeSection === 1 && (
       <button

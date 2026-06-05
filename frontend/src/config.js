@@ -6,3 +6,22 @@ export function apiUrl(path) {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${cleanPath}`;
 }
+
+export async function parseApiResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+
+  let data;
+
+  if (contentType.includes("application/json")) {
+    data = await response.json();
+  } else {
+    const text = await response.text();
+    throw new Error(text.slice(0, 180) || "Server returned non-JSON response");
+  }
+
+  if (!response.ok) {
+    throw new Error(data.error || data.message || "Request failed");
+  }
+
+  return data;
+}

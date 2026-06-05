@@ -41,6 +41,10 @@ body.home-about-active {
   overflow: hidden;
 }
 
+body:not(.home-about-active) {
+  overflow-y: auto;
+}
+
 button,
 input,
 textarea {
@@ -153,6 +157,26 @@ a {
   height: auto;
   min-height: 100vh;
   overflow-y: visible;
+}
+
+.tool-page {
+  min-height: 100dvh;
+  overflow: visible;
+}
+
+.page-transition.page-layout {
+  width: 100%;
+  min-height: 100dvh;
+  height: auto;
+  margin: 0;
+  padding: 92px 28px 72px;
+  overflow-x: hidden;
+}
+
+.page-content {
+  width: 100%;
+  max-width: 1480px;
+  margin: 0 auto;
 }
 
 .studio-page {
@@ -2200,6 +2224,39 @@ audio {
 }
 
 @media (max-width: 768px) {
+  .page-transition.page-layout {
+    min-height: 100dvh;
+    padding: 84px 16px 88px;
+  }
+
+  .page-content {
+    max-width: 100%;
+  }
+
+  .tool-heading h1,
+  .downloader-heading h1 {
+    font-size: clamp(38px, 11vw, 54px);
+    line-height: 0.95;
+  }
+
+  .tool-heading p,
+  .downloader-heading p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .workspace-card,
+  .stems-card,
+  .progress-card,
+  .downloader-card,
+  .download-result-card,
+  .routed-card,
+  .video-drop-zone,
+  .video-extract-card {
+    border-radius: 22px;
+    padding: 16px;
+  }
+
   .home-section {
     height: 100dvh;
     min-height: 100dvh;
