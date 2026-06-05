@@ -53,6 +53,8 @@ app.use((error, _req, res, _next) => {
   });
 });
 
-app.listen(config.port, () => {
-  console.log(`AI Music Studio API running on http://localhost:${config.port}`);
+const PORT = process.env.PORT || config.port || 4000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`AI Music Studio API running on port ${PORT}`);
 });
