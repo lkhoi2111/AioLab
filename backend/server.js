@@ -14,13 +14,26 @@ ensureStorageDirs();
 startCleanupJob();
 
 const app = express();
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
 
-app.use(
-  cors({
-    origin: config.clientOrigin,
-    credentials: true
-  })
-);
+    if (config.clientOrigin.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+app.use((req, _res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(config.uploadDir));

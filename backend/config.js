@@ -30,7 +30,12 @@ export const config = {
 
   port: Number(process.env.PORT || 4000),
 
-  clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
+  clientOrigin: process.env.CLIENT_ORIGIN
+    ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : [
+        'http://localhost:5173',
+        'https://aio-lab.vercel.app'
+      ],
 
   pythonBin: process.env.PYTHON_BIN || 'python',
   ytDlpBin: process.env.YT_DLP_BIN || 'yt-dlp',
