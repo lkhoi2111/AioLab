@@ -22,6 +22,11 @@ export function runPythonWorker(scriptName, args = []) {
     });
 
     child.on('error', (error) => {
+      if (error?.code === 'ENOENT') {
+        reject(new Error(`Python worker is not available on this server. Missing Python binary: ${config.pythonBin}.`));
+        return;
+      }
+
       reject(error);
     });
 

@@ -48,7 +48,7 @@ router.post('/info', async (req, res) => {
     logDownloaderError('info_failed', error);
     res.status(500).json({
       ok: false,
-      error: 'Không thể kiểm tra link này. Vui lòng thử lại hoặc dùng nguồn khác.'
+      error: downloaderErrorMessage(error, 'Không thể kiểm tra link này. Vui lòng thử lại hoặc dùng nguồn khác.')
     });
   }
 });
@@ -151,7 +151,7 @@ router.post('/download', async (req, res) => {
     logDownloaderError('download_failed', error);
     res.status(500).json({
       ok: false,
-      error: 'Không thể tải media này. Vui lòng kiểm tra link hoặc thử nguồn khác.'
+      error: downloaderErrorMessage(error, 'Không thể tải media này. Vui lòng kiểm tra link hoặc thử nguồn khác.')
     });
   }
 });
@@ -350,7 +350,14 @@ function runYtDlp(args) {
     child.stderr.on('data', (chunk) => {
       stderr += chunk.toString();
     });
-    child.on('error', reject);
+    child.on('error', (error) => {
+      if (error?.code === 'ENOENT') {
+        reject(new Error('Downloader chưa khả dụng trên server production vì thiếu yt-dlp.'));
+        return;
+      }
+
+      reject(error);
+    });
     child.on('close', (code) => {
       if (code !== 0) {
         reject(new Error(stderr || `yt-dlp exited with code ${code}.`));
@@ -411,4 +418,13 @@ function logDownloaderError(scope, error) {
     message: error?.message || String(error)
   };
   console.error(`[downloader] ${JSON.stringify(payload)}`);
+}
+
+function downloaderErrorMessage(error, fallback) {
+  const message = error?.message || '';
+  if (/yt-dlp|ENOENT/i.test(message)) {
+    return 'Downloader chưa khả dụng trên server production vì thiếu yt-dlp.';
+  }
+
+  return message || fallback;
 }

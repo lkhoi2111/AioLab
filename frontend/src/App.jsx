@@ -315,9 +315,9 @@ export default function App() {
         url: backendAssetUrl(data.file?.url || current?.url || file.url)
       }));
       setAnalysis(data.analysis || null);
-    } catch {
+    } catch (error) {
       setAnalysis(null);
-      setAnalysisError('Chưa phân tích được BPM/Key, bạn có thể thử lại.');
+      setAnalysisError(error.message || 'Chưa phân tích được BPM/Key, bạn có thể thử lại.');
     } finally {
       setAnalysisBusy(false);
     }
@@ -564,7 +564,7 @@ export default function App() {
       });
     } catch (error) {
       clearVideoExtractTimers();
-      setVideoExtractProgress({ percent: 100, text: 'Failed', error: true });
+      setVideoExtractProgress({ percent: 100, text: error.message || 'Audio extraction failed.', error: true });
       setVideoExtractError(error.message || 'Audio extraction failed.');
     } finally {
       setVideoExtractBusy(false);

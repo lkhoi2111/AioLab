@@ -94,8 +94,11 @@ function normalizeExtractError(error) {
   if (/unsupported audio format/i.test(message)) {
     return 'Unsupported audio format.';
   }
+  if (/ffprobe/i.test(message)) {
+    return message;
+  }
   if (/ffmpeg|invalid data|could not|error/i.test(message)) {
-    return 'FFmpeg failed to extract audio.';
+    return message || 'FFmpeg failed to extract audio.';
   }
 
   return message || 'Audio extraction failed.';

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import ffmpegStatic from 'ffmpeg-static';
+import ffprobeStatic from 'ffprobe-static';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,7 @@ export const config = {
   ytDlpBin: process.env.YT_DLP_BIN || 'yt-dlp',
 
   ffmpegLocation: process.env.FFMPEG_LOCATION || ffmpegStatic,
+  ffprobeLocation: process.env.FFPROBE_LOCATION || ffprobeStatic.path,
 
   tempFileTtlMs: Number(process.env.TEMP_FILE_TTL_MINUTES || 30) * 60 * 1000,
   cleanupIntervalMs: Number(process.env.CLEANUP_INTERVAL_MINUTES || 10) * 60 * 1000,

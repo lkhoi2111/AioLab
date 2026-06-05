@@ -27,11 +27,11 @@ const corsOptions = {
   credentials: true
 };
 
-app.use(cors(corsOptions));
 app.options('*', cors());
+app.use(cors(corsOptions));
 
 app.use((req, _res, next) => {
-  console.log(`${req.method} ${req.path}`);
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
 });
 

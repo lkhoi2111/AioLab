@@ -16,11 +16,11 @@ export async function parseApiResponse(response) {
     data = await response.json();
   } else {
     const text = await response.text();
-    throw new Error(text.slice(0, 180) || "Server returned non-JSON response");
+    throw new Error(text.slice(0, 300) || "Server returned non-JSON response");
   }
 
   if (!response.ok) {
-    throw new Error(data.error || data.message || "Request failed");
+    throw new Error(data.detail || data.error || data.message || "Request failed");
   }
 
   return data;

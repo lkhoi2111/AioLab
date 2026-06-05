@@ -146,15 +146,11 @@ function sanitizeBaseName(originalName) {
 }
 
 function getFfmpegPath() {
-  const exe = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg';
-  const localPath = path.join(config.ffmpegLocation, exe);
-  return fs.existsSync(localPath) ? localPath : 'ffmpeg';
+  return config.ffmpegLocation || 'ffmpeg';
 }
 
 function getFfprobePath() {
-  const exe = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
-  const localPath = path.join(config.ffmpegLocation, exe);
-  return fs.existsSync(localPath) ? localPath : 'ffprobe';
+  return config.ffprobeLocation || 'ffprobe';
 }
 
 function runProcess(command, args, label) {
@@ -173,7 +169,11 @@ function runProcess(command, args, label) {
     child.stderr.on('data', (chunk) => {
       stderr += chunk.toString();
     });
-    child.on('error', reject);
+    child.on('error', (error) => {
+      const wrapped = new Error(`${label} failed to start: ${error.message}`);
+      wrapped.statusCode = 500;
+      reject(wrapped);
+    });
     child.on('close', (code) => {
       if (code !== 0) {
         const error = new Error(stderr || `${label} exited with code ${code}.`);
