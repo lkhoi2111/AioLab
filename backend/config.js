@@ -36,8 +36,5 @@ export const config = {
   deletionLogPath: path.join(rootDir, 'logs', 'deleted-files.log')
 };
 
-const PORT = process.env.PORT || config.port || 4000;
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`AioLab API running on port ${PORT}`);
-});
+deletionLogPath: path.join(rootDir, 'logs', 'deleted-files.log')
+};
