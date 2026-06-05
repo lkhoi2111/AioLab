@@ -131,6 +131,7 @@ export default function App() {
   const fileInputRef = useRef(null);
   const hubFileInputRef = useRef(null);
   const videoExtractInputRef = useRef(null);
+  const pageTopRef = useRef(null);
   const chatEndRef = useRef(null);
   const aboutSectionRef = useRef(null);
   const touchStartYRef = useRef(0);
@@ -196,6 +197,16 @@ export default function App() {
     setActiveSection(0);
     window.scrollTo(0, 0);
   }, [isHomePage]);
+
+  useEffect(() => {
+    if (activeView !== 'studio') return;
+
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    pageTopRef.current?.scrollIntoView({
+      block: 'start',
+      behavior: 'auto'
+    });
+  }, [activeView]);
 
   useEffect(() => {
     if (!isHomePage || !pendingAboutScrollRef.current) return;
@@ -292,6 +303,11 @@ export default function App() {
       setUploadBusy(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
       if (hubFileInputRef.current) hubFileInputRef.current.value = '';
+      if (activeView === 'studio') {
+        window.setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 80);
+      }
     }
   }
 
@@ -849,7 +865,7 @@ export default function App() {
   function renderAppChrome(content, { home = false } = {}) {
     return (
       <div
-        className={`studio-page ${sidebarOpen ? 'sidebar-open' : ''}`}
+        className={`studio-page ${home ? 'home-shell' : 'tool-shell'} ${sidebarOpen ? 'sidebar-open' : ''}`}
         onDrop={(event) => {
           event.preventDefault();
           routeFile(event.dataTransfer.files?.[0]);
@@ -923,16 +939,12 @@ export default function App() {
 
   return (
     <>
-    <div
-      className={`app-sections ${isHomePage ? 'home-page home-about-shell' : 'tool-page'}`}
-      {...(isHomePage
-        ? {
-            onTouchStart: handleSectionTouchStart,
-            onTouchEnd: handleSectionTouchEnd
-          }
-        : {})}
-    >
       {isHomePage ? (
+    <div
+      className="app-sections home-page home-about-shell"
+      onTouchStart={handleSectionTouchStart}
+      onTouchEnd={handleSectionTouchEnd}
+    >
       <div className={`sections-track ${isHomePage ? 'home-about-track' : ''} ${isHomePage && activeSection === 0 ? 'home-active' : ''} ${isHomePage && activeSection === 1 ? 'is-about about-active' : ''}`}>
       <section
         className="app-section home-section"
@@ -1084,6 +1096,7 @@ export default function App() {
 
       {isHomePage && renderAboutSection()}
       </div>
+    </div>
       ) : (
         renderAppChrome(
           <AnimatePresence mode="wait">
@@ -1091,14 +1104,13 @@ export default function App() {
               key={activeView}
               className={`page-layout ${hasUpload ? 'has-upload' : ''}`}
             >
-              <div className="page-content">
+              <div ref={pageTopRef} className={`page-content ${activeView === 'studio' ? 'tool-page audio-page tool-page-content' : 'tool-page-content'}`}>
                 {renderActiveView()}
               </div>
             </PageTransition>
           </AnimatePresence>
         )
       )}
-    </div>
     {isHomePage && activeSection === 1 && (
       <button
         type="button"

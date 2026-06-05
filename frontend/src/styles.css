@@ -150,18 +150,17 @@ a {
   overflow: hidden !important;
 }
 
-.tool-page .home-section,
-.tool-page .home-content,
-.tool-page .studio-page,
-.tool-page .studio-main {
-  height: auto;
-  min-height: 100vh;
-  overflow-y: visible;
-}
-
 .tool-page {
   min-height: 100dvh;
-  overflow: visible;
+  padding: 96px 28px 80px;
+  overflow-x: hidden;
+}
+
+.studio-page.tool-shell {
+  height: auto;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .page-transition.page-layout {
@@ -169,7 +168,7 @@ a {
   min-height: 100dvh;
   height: auto;
   margin: 0;
-  padding: 92px 28px 72px;
+  padding: 0;
   overflow-x: hidden;
 }
 
@@ -177,6 +176,19 @@ a {
   width: 100%;
   max-width: 1480px;
   margin: 0 auto;
+}
+
+.tool-page-content {
+  width: min(1280px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.audio-page .workspace-card,
+.audio-page .progress-card,
+.audio-page .stems-card,
+.audio-result-card {
+  margin-top: 24px;
+  position: relative;
 }
 
 .studio-page {
@@ -2226,11 +2238,27 @@ audio {
 @media (max-width: 768px) {
   .page-transition.page-layout {
     min-height: 100dvh;
-    padding: 84px 16px 88px;
+    padding: 0;
   }
 
   .page-content {
     max-width: 100%;
+  }
+
+  .tool-page {
+    padding: 84px 16px 96px;
+  }
+
+  .tool-page-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .studio-page.tool-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: visible;
   }
 
   .tool-heading h1,

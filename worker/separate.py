@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -37,11 +38,11 @@ def run_demucs(input_path: Path, output_dir: Path, stem: str) -> Path:
 
 
 def find_ffmpeg() -> str | None:
-    local_ffmpeg = Path(__file__).resolve().parents[1] / "ffmpeg-8.1.1-essentials_build" / "bin" / "ffmpeg.exe"
-    if local_ffmpeg.exists():
-        return str(local_ffmpeg)
+    configured = os.environ.get("FFMPEG_LOCATION")
+    if configured:
+        return configured
 
-    return shutil.which("ffmpeg")
+    return shutil.which("ffmpeg") or "ffmpeg"
 
 
 def create_instrumental(output_dir: Path, stem_paths: dict[str, Path]) -> Path | None:

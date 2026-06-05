@@ -70,8 +70,8 @@ app.get("/", (_req, res) => {
   res.send("AioLab API running");
 });
 
-const PORT = process.env.PORT || config.port;
+const PORT = process.env.PORT || config.port || 4000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`AI Music Studio API running on port ${PORT}`);
+  console.log(`AioLab API running on port ${PORT}`);
 });
