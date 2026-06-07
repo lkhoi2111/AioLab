@@ -12,6 +12,7 @@ import {
   writeUploadMetadata
 } from '../utils/files.js';
 import { warmAnalyzeUploadedAudio } from '../utils/audioAnalysis.js';
+import { checkYtDlpAvailable } from '../utils/systemCheck.js';
 
 const router = Router();
 const allowedHosts = new Set([
@@ -36,9 +37,16 @@ router.get('/info', async (req, res) => {
     return;
   }
 
+  const downloaderStatus = checkYtDlpAvailable();
+
   res.json({
     ok: true,
+    available: downloaderStatus.available,
     service: 'downloader',
+    command: downloaderStatus.command,
+    location: downloaderStatus.location,
+    version: downloaderStatus.version,
+    detail: downloaderStatus.detail,
     supportedPlatforms: ['youtube', 'soundcloud', 'x'],
     routes: {
       info: 'GET /api/downloader/info',

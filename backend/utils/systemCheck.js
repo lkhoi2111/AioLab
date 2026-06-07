@@ -7,7 +7,7 @@ const requiredTools = [
   { key: 'python', command: config.pythonBin, args: ['--version'] },
   { key: 'ffmpeg', command: config.ffmpegLocation, args: ['-version'] },
   { key: 'ffprobe', command: config.ffprobeLocation, args: ['-version'] },
-  { key: 'ytdlp', command: config.ytDlpBin, args: ['--version'] }
+  { key: 'yt-dlp', command: config.ytDlpBin || 'yt-dlp', args: ['--version'] }
 ];
 
 export function getSystemDiagnostics() {
@@ -29,8 +29,21 @@ export function getSystemCheckBooleans() {
     python: diagnostics.python.ok,
     ffmpeg: diagnostics.ffmpeg.ok,
     ffprobe: diagnostics.ffprobe.ok,
-    ytdlp: diagnostics.ytdlp.ok,
+    'yt-dlp': diagnostics['yt-dlp'].ok,
+    ytdlp: diagnostics['yt-dlp'].ok,
     demucs: diagnostics.demucs.ok
+  };
+}
+
+export function checkYtDlpAvailable() {
+  const result = checkExecutable(config.ytDlpBin || 'yt-dlp', ['--version']);
+
+  return {
+    available: result.ok,
+    command: config.ytDlpBin || 'yt-dlp',
+    location: result.location,
+    version: result.ok ? result.detail : '',
+    detail: result.ok ? '' : result.detail
   };
 }
 
