@@ -1,10 +1,32 @@
 export const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:4000";
+  normalizeApiBaseUrl(
+    import.meta.env.VITE_API_BASE_URL ||
+      import.meta.env.VITE_API_URL ||
+      (import.meta.env.DEV ? "http://localhost:4000" : "https://aiolab.onrender.com")
+  );
 
 export function apiUrl(path) {
   const base = API_URL.replace(/\/$/, "");
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${cleanPath}`;
+}
+
+function normalizeApiBaseUrl(value) {
+  const fallback = "https://aiolab.onrender.com";
+  const base = String(value || fallback).replace(/\/$/, "");
+
+  if (!import.meta.env.DEV) {
+    try {
+      const url = new URL(base);
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+        return fallback;
+      }
+    } catch {
+      return fallback;
+    }
+  }
+
+  return base;
 }
 
 export async function parseApiResponse(response) {

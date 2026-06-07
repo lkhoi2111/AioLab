@@ -30,28 +30,26 @@ const allowedHosts = new Set([
 const spotifyHosts = new Set(['spotify.com', 'www.spotify.com', 'open.spotify.com']);
 const metadataByFile = new Map();
 
-router.post('/info', async (req, res) => {
-  const validation = validateSupportedUrl(req.body.url);
-  if (!validation.ok) {
-    res.status(validation.status).json({ ok: false, error: validation.message });
+router.get('/info', async (req, res) => {
+  if (req.query.url) {
+    await checkDownloaderInfo(req, res);
     return;
   }
 
-  try {
-    const metadata = await runYtDlpJson(validation.url);
-    const normalized = normalizeMetadata(metadata, validation.url);
-    res.json({
-      ok: true,
-      ...normalized
-    });
-  } catch (error) {
-    logDownloaderError('info_failed', error);
-    res.status(500).json({
-      ok: false,
-      error: downloaderErrorMessage(error, 'Không thể kiểm tra link này. Vui lòng thử lại hoặc dùng nguồn khác.')
-    });
-  }
+  res.json({
+    ok: true,
+    service: 'downloader',
+    supportedPlatforms: ['youtube', 'soundcloud', 'x'],
+    routes: {
+      info: 'GET /api/downloader/info',
+      check: 'POST /api/downloader/check',
+      download: 'POST /api/downloader/download'
+    }
+  });
 });
+
+router.post('/info', checkDownloaderInfo);
+router.post('/check', checkDownloaderInfo);
 
 router.post('/download', async (req, res) => {
   const validation = validateSupportedUrl(req.body.url);
@@ -239,6 +237,29 @@ router.post('/use-in-audio-tools', async (req, res) => {
 });
 
 export default router;
+
+async function checkDownloaderInfo(req, res) {
+  const validation = validateSupportedUrl(req.body?.url || req.query?.url);
+  if (!validation.ok) {
+    res.status(validation.status).json({ ok: false, error: validation.message });
+    return;
+  }
+
+  try {
+    const metadata = await runYtDlpJson(validation.url);
+    const normalized = normalizeMetadata(metadata, validation.url);
+    res.json({
+      ok: true,
+      ...normalized
+    });
+  } catch (error) {
+    logDownloaderError('info_failed', error);
+    res.status(500).json({
+      ok: false,
+      error: downloaderErrorMessage(error, 'Unable to check this link. Please try again or use another source.')
+    });
+  }
+}
 
 function validateSupportedUrl(value) {
   let url;

@@ -28,7 +28,7 @@ const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);
 
-    if (config.clientOrigin.includes(origin)) {
+    if (isAllowedCorsOrigin(origin)) {
       return callback(null, true);
     }
 
@@ -37,7 +37,7 @@ const corsOptions = {
   credentials: true
 };
 
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use((req, _res, next) => {
@@ -89,3 +89,14 @@ const PORT = process.env.PORT || config.port || 4000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`AioLab API running on port ${PORT}`);
 });
+
+function isAllowedCorsOrigin(origin) {
+  if (config.clientOrigin.includes(origin)) return true;
+
+  try {
+    const url = new URL(origin);
+    return url.protocol === 'https:' && url.hostname.endsWith('.vercel.app');
+  } catch {
+    return false;
+  }
+}

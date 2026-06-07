@@ -32,6 +32,7 @@ export const config = {
   clientOrigin: process.env.CLIENT_ORIGIN
     ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
     : [
+        'https://aio-lab.vercel.app',
         'http://localhost:5173'
       ],
 
