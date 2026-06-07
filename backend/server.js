@@ -51,9 +51,26 @@ app.use('/results', express.static(config.resultDir));
 app.use('/separated', express.static(config.separatedDir));
 app.get('/downloads/:filename', downloadExtractedAudioController);
 
+app.get('/info', (_req, res) => {
+  res.json({
+    ok: true,
+    name: 'AioLab API',
+    status: 'running'
+  });
+});
+
+app.get('/api/status', (_req, res) => {
+  res.json({
+    ok: true,
+    status: 'running',
+    uptime: process.uptime()
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({
     ok: true,
+    status: 'healthy',
     uploadDir: config.uploadDir,
     resultDir: config.resultDir,
     separatedDir: config.separatedDir,
